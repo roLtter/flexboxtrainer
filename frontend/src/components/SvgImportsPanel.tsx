@@ -1,6 +1,6 @@
-import type { TaskConfig } from "../lib/types";
-import { getSvgRaw } from "../lib/svgIcons";
-import type { SvgIconName } from "../lib/svgIcons";
+import type { TaskConfig } from "../utils/types";
+import { getSvgRaw } from "../utils/svgIcons";
+import type { SvgIconName } from "../utils/svgIcons";
 
 interface SvgImportsPanelProps {
   task: TaskConfig;
@@ -10,8 +10,8 @@ export function SvgImportsPanel({ task }: SvgImportsPanelProps) {
   if (task.svgNames.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-amber-400/10 bg-amber-400/[0.02] px-4 py-3">
-      <div className="text-[10px] uppercase tracking-[0.2em] text-amber-400/40 mb-2.5 font-semibold">
+    <div className="rounded-2xl border border-white/[0.1] bg-[#171a1f] px-4 py-3">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-white/55 mb-2.5 font-semibold">
         Elements to import:
       </div>
 
@@ -26,21 +26,12 @@ export function SvgImportsPanel({ task }: SvgImportsPanelProps) {
           return (
             <div
               key={name}
-              className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2"
+              className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.1] rounded-lg px-3 py-2"
             >
-              {/* Preview the icon */}
-              <div
-                className="flex-shrink-0"
-                style={{ width: 20, height: 20 }}
-                dangerouslySetInnerHTML={{ __html: raw }}
-              />
-
-              {/* Name — this is what the user types as src */}
-              <code className="text-[11px] font-mono text-amber-300/70">
+              <div className="h-5 w-5 shrink-0" dangerouslySetInnerHTML={{ __html: raw }} />
+              <code className="text-[11px] font-mono text-slate-200">
                 {name}.svg
               </code>
-
-              {/* Size hint */}
               {svg && (
                 <span className="text-[10px] text-white/20 font-mono">
                   {svg.size}×{svg.size} · {svg.color.toUpperCase()}
@@ -51,12 +42,12 @@ export function SvgImportsPanel({ task }: SvgImportsPanelProps) {
         })}
       </div>
 
-      <p className="mt-2 text-[10px] text-white/15 leading-relaxed">
-        Используй{" "}
-        <code className="text-amber-300/40 font-mono">
+      <p className="mt-2 text-[10px] leading-relaxed text-white/40">
+        Use{" "}
+        <code className="font-mono text-slate-300/70">
           {"<img src=\"Name.svg\" width=\"N\" height=\"N\" />"}
         </code>{" "}
-        внутри нужного бокса. Бокс центрирует иконку через flex.
+        inside the matching box; flex centers the icon.
       </p>
     </div>
   );

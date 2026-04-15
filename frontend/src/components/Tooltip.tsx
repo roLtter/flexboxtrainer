@@ -1,4 +1,4 @@
-import type { InspectedItem } from "../lib/types";
+import type { InspectedItem } from "../utils/types";
 
 interface TooltipProps {
   item: InspectedItem;
@@ -6,13 +6,14 @@ interface TooltipProps {
 }
 
 function ColorSwatch({ color }: { color: string }) {
+  const label = color.startsWith("linear-gradient(") ? color : color.toUpperCase();
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-start gap-2">
       <div
         className="w-3.5 h-3.5 rounded-sm flex-shrink-0 border border-white/10"
         style={{ background: color }}
       />
-      <span className="font-mono text-white/55 text-[10px]">{color.toUpperCase()}</span>
+      <span className="font-mono text-white/55 text-[9px] leading-tight break-all">{label}</span>
     </div>
   );
 }
@@ -20,15 +21,14 @@ function ColorSwatch({ color }: { color: string }) {
 export function Tooltip({ item, onClose }: TooltipProps) {
   if (item.kind === "container") {
     const t = item.task;
-    const sizeLabel = `${t.gapMode.containerWidth} × ${t.gapMode.containerHeight}`;
+    const sizeLabel = `${t.gapMode.containerWidth} × ${t.gapMode.containerHeight} · r${t.containerRadius}`;
     const gapLabel = t.gapMode.kind === "fixed"
       ? `gap ${t.gapMode.gap}px · px ${t.gapMode.px}px · py ${t.gapMode.py}px`
-      : null; // auto gap — user figures out justify-content themselves
+      : null;
 
     return (
       <div
-        className="absolute top-2 right-2 z-50 rounded-xl border border-white/10 bg-[#0d0d14]/97 backdrop-blur-xl shadow-2xl p-3 space-y-2.5 select-text"
-        style={{ width: "184px", pointerEvents: "all" }}
+        className="pointer-events-auto absolute right-2 top-2 z-50 w-[236px] select-text space-y-2.5 rounded-xl border border-white/10 bg-[#0d0d14]/97 p-3 shadow-2xl backdrop-blur-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -45,7 +45,6 @@ export function Tooltip({ item, onClose }: TooltipProps) {
           <div className="font-mono text-indigo-300/60 text-[10px] leading-snug">{gapLabel}</div>
         )}
 
-        {/* Container bg color */}
         <div>
           <div className="text-[9px] uppercase tracking-widest text-white/20 mb-1.5">Background</div>
           <ColorSwatch color={t.bgColor} />
@@ -54,7 +53,6 @@ export function Tooltip({ item, onClose }: TooltipProps) {
     );
   }
 
-  // ── Box tooltip ──────────────────────────────────────────────────────────────
   const b = item.box;
   const colors = Array.from(new Set([
     b.bgColor,
@@ -65,14 +63,12 @@ export function Tooltip({ item, onClose }: TooltipProps) {
   const sizeLabel = `${b.width} × ${b.height}${b.borderRadius > 0 ? ` · r${b.borderRadius}` : ""}`;
   const borderLabel = b.borderWidth > 0 && b.borderStyle !== "none"
     ? `border ${b.borderWidth}px ${b.borderStyle}` : null;
-  // Show padding if box has svg with border-radius padding applied
   const paddingLabel = b.svg && b.svg.padding > 0
     ? `padding ${b.svg.padding}px` : null;
 
   return (
     <div
-      className="absolute top-2 right-2 z-50 rounded-xl border border-white/10 bg-[#0d0d14]/97 backdrop-blur-xl shadow-2xl p-3 space-y-2.5 select-text"
-      style={{ width: "184px", pointerEvents: "all" }}
+      className="pointer-events-auto absolute right-2 top-2 z-50 w-[236px] select-text space-y-2.5 rounded-xl border border-white/10 bg-[#0d0d14]/97 p-3 shadow-2xl backdrop-blur-xl"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between">

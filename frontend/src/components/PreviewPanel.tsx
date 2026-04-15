@@ -1,8 +1,8 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
-import type { TaskConfig } from "../lib/types";
-import { buildSvgInjectionScript } from "../lib/svgIcons";
-import type { SvgIconName } from "../lib/svgIcons";
-import { buildSvgColorMap } from "../lib/htmlBuilder";
+import type { TaskConfig } from "../utils/types";
+import { buildSvgInjectionScript } from "../utils/svgIcons";
+import type { SvgIconName } from "../utils/svgIcons";
+import { buildSvgColorMap } from "../utils/htmlBuilder";
 
 export interface PreviewHandle {
   getIframe: () => HTMLIFrameElement | null;
@@ -62,7 +62,6 @@ export const PreviewPanel = forwardRef<PreviewHandle, PreviewProps>(
       getIframe: () => iframeRef.current,
     }));
 
-    // Write to iframe whenever code/mode/task changes (debounced)
     useEffect(() => {
       const t = setTimeout(() => {
         const doc = iframeRef.current?.contentDocument;
@@ -87,12 +86,12 @@ export const PreviewPanel = forwardRef<PreviewHandle, PreviewProps>(
       score === null
         ? ""
         : score >= 92
-        ? "Pixel-perfect! Отличная работа."
-        : score >= 75
-        ? "Очень близко — проверь gap, padding или цвета."
-        : score >= 50
-        ? "Структура есть, но детали расходятся."
-        : "Сверься с размерами и цветами через инспектор.";
+          ? "Pixel-perfect — great work."
+          : score >= 75
+            ? "Very close — check gap, padding, or colors."
+            : score >= 50
+              ? "Structure matches; details differ."
+              : "Compare sizes and colors with the inspector.";
 
     return (
       <div className="flex flex-col gap-2">
@@ -112,8 +111,7 @@ export const PreviewPanel = forwardRef<PreviewHandle, PreviewProps>(
           </div>
           <iframe
             ref={iframeRef}
-            className="w-full"
-            style={{ height: 380, border: "none" }}
+            className="h-[380px] w-full border-0"
             title="preview"
             sandbox="allow-scripts allow-same-origin"
           />

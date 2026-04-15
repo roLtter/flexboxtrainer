@@ -1,10 +1,10 @@
-import type { TaskConfig, InspectedItem, BoxConfig } from "../lib/types";
-import { getSvgRaw } from "../lib/svgIcons";
-import type { SvgIconName } from "../lib/svgIcons";
+import type { TaskConfig, InspectedItem, BoxConfig } from "../utils/types";
+import { getSvgRaw } from "../utils/svgIcons";
+import type { SvgIconName } from "../utils/svgIcons";
 import { Tooltip } from "./Tooltip";
 
-function BoxEl({ box, index, isSelected, onClick }: {
-  box: BoxConfig; index: number; isSelected: boolean; onClick: (e: React.MouseEvent) => void;
+function BoxEl({ box, isSelected, onClick }: {
+  box: BoxConfig; isSelected: boolean; onClick: (e: React.MouseEvent) => void;
 }) {
   const border = box.borderWidth > 0 && box.borderStyle !== "none"
     ? box.borderWidth + "px " + box.borderStyle + " " + box.borderColor : undefined;
@@ -28,7 +28,6 @@ function BoxEl({ box, index, isSelected, onClick }: {
         display: hasContent ? "flex" : "block",
         alignItems: box.svg ? box.svg.alignItems : (hasContent ? "center" : undefined),
         justifyContent: box.svg ? box.svg.justifyContent : (hasContent ? "center" : undefined),
-        // SVG padding keeps icon inside rounded corners
         padding: box.svg && box.svg.padding > 0 ? box.svg.padding : undefined,
       }}
     >
@@ -64,16 +63,16 @@ export function TargetRenderer({ task, selected, onSelect, containerRef }: {
   onSelect: (item: InspectedItem | null) => void;
   containerRef: React.RefCallback<HTMLDivElement>;
 }) {
-  const { gapMode, flexDirection, justifyContent, alignItems, bgColor, boxes } = task;
+  const { gapMode, flexDirection, justifyContent, alignItems, bgColor, containerRadius, boxes } = task;
   const isContainerSelected = selected?.kind === "container";
 
-  // Both modes now have explicit width/height
   const containerStyle: React.CSSProperties = {
     display: "flex",
     flexDirection,
     justifyContent,
     alignItems,
     background: bgColor,
+    borderRadius: containerRadius,
     cursor: "crosshair",
     outline: isContainerSelected ? "2px dashed rgba(99,102,241,0.85)" : "none",
     outlineOffset: 2,
@@ -97,7 +96,7 @@ export function TargetRenderer({ task, selected, onSelect, containerRef }: {
       {boxes.map((box, i) => {
         const isSelected = selected?.kind === "box" && selected.index === i;
         return (
-          <BoxEl key={box.id} box={box} index={i} isSelected={isSelected}
+          <BoxEl key={box.id} box={box} isSelected={isSelected}
             onClick={(e) => { e.stopPropagation(); onSelect(isSelected ? null : { kind: "box", box, index: i }); }}
           />
         );
@@ -119,8 +118,7 @@ export function TargetPanel({ task, selected, onSelect, containerRef }: {
         <span className="text-[10px] text-white/15">click container or element to inspect</span>
       </div>
       <div
-        className="rounded-xl border border-white/[0.06] bg-[#111827] relative overflow-auto"
-        style={{ minHeight: 120, padding: 32, display: "flex", alignItems: "center", justifyContent: "center" }}
+        className="relative flex min-h-[120px] items-center justify-center overflow-auto rounded-xl border border-white/[0.06] bg-[#111827] p-8"
         onClick={() => onSelect(null)}
       >
         <TargetRenderer task={task} selected={selected} onSelect={onSelect} containerRef={containerRef} />

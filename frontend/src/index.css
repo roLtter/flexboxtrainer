@@ -1,1 +1,98 @@
 @import "tailwindcss";
+
+:root {
+  font-family: "Proxima Nova", "Avenir Next", "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: "Proxima Nova", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 600;
+  background: #101215;
+  color: #f3f4f6;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 35% at 18% 22%, rgba(255, 255, 255, 0.08), transparent 70%),
+    radial-gradient(35% 30% at 82% 16%, rgba(148, 163, 184, 0.12), transparent 72%),
+    radial-gradient(45% 40% at 50% 85%, rgba(203, 213, 225, 0.08), transparent 70%);
+  filter: blur(36px);
+  opacity: 0.75;
+}
+
+button {
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.08s ease, opacity 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.995);
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.95);
+  border-radius: 9999px;
+  animation: spin 0.8s linear infinite;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@keyframes stats-bar-rise {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes stats-donut-in {
+  from {
+    transform: scale(0.88) rotate(-8deg);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.stats-bar-rise {
+  transform-origin: bottom;
+  animation: stats-bar-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stats-donut-in {
+  animation: stats-donut-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

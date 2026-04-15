@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-/**
- * Monaco Editor loaded from CDN.
- * Gives us: syntax highlighting, Ctrl+Z undo, proper cursor, auto-indent,
- * bracket matching — everything from VS Code, zero hand-rolled code.
- */
-
 declare global {
   interface Window {
     monaco: any;
@@ -15,7 +9,6 @@ declare global {
 
 const MONACO_CDN = "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min";
 
-// Single promise shared across all mounts — prevents double-loading on HMR
 let _monacoPromise: Promise<any> | null = null;
 
 function loadMonaco(): Promise<any> {
@@ -23,7 +16,6 @@ function loadMonaco(): Promise<any> {
   if (_monacoPromise) return _monacoPromise;
 
   _monacoPromise = new Promise((resolve, reject) => {
-    // If loader script already in DOM (e.g. after HMR), just configure and use it
     if (window.require && window.require.config) {
       window.require.config({ paths: { vs: `${MONACO_CDN}/vs` } });
       window.require(["vs/editor/editor.main"], () => resolve(window.monaco));
@@ -69,16 +61,20 @@ const PH_TSX = `<div className="flex flex-row" style={{gap:'12px',padding:'16px'
 export function Editor({ code, mode, onCodeChange, onModeChange }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<any>(null);
+  const initialCodeRef = useRef(code);
+  const onCodeChangeRef = useRef(onCodeChange);
   const [monacoReady, setMonacoReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
-  // Load Monaco once
+  useEffect(() => {
+    onCodeChangeRef.current = onCodeChange;
+  }, [onCodeChange]);
+
   useEffect(() => {
     loadMonaco()
       .then((monaco) => {
         if (!containerRef.current || editorRef.current) return;
 
-        // Define a dark theme matching the app
         monaco.editor.defineTheme("trainer-dark", {
           base: "vs-dark",
           inherit: true,
@@ -103,10 +99,10 @@ export function Editor({ code, mode, onCodeChange, onModeChange }: EditorProps) 
           },
         });
 
-        const language = mode === "tsx" ? "html" : "html"; // html works for both
+        const language = "html";
 
         const editor = monaco.editor.create(containerRef.current, {
-          value: code,
+          value: initialCodeRef.current,
           language,
           theme: "trainer-dark",
           fontSize: 12,
@@ -143,9 +139,8 @@ export function Editor({ code, mode, onCodeChange, onModeChange }: EditorProps) 
 
         editorRef.current = editor;
 
-        // Listen for changes
         editor.onDidChangeModelContent(() => {
-          onCodeChange(editor.getValue());
+          onCodeChangeRef.current(editor.getValue());
         });
 
         setMonacoReady(true);
@@ -156,10 +151,8 @@ export function Editor({ code, mode, onCodeChange, onModeChange }: EditorProps) 
       editorRef.current?.dispose();
       editorRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Sync external code changes (e.g. new task) into Monaco
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
@@ -169,40 +162,35 @@ export function Editor({ code, mode, onCodeChange, onModeChange }: EditorProps) 
     }
   }, [code]);
 
-  // Update language when mode changes
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor || !window.monaco) return;
     const model = editor.getModel();
     if (model) {
-      // Both html and tsx use html language model — works fine
       window.monaco.editor.setModelLanguage(model, "html");
     }
   }, [mode]);
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Mode toggle */}
-      <div className="flex rounded-lg overflow-hidden border border-white/[0.07] w-fit text-[10px] font-bold uppercase tracking-[0.15em]">
+      <div className="flex rounded-lg overflow-hidden border border-white/[0.12] w-fit text-[10px] font-bold uppercase tracking-[0.15em]">
         {(["html", "tsx"] as const).map((m) => (
           <button key={m} onClick={() => onModeChange(m)}
             className={`px-5 py-1.5 transition-colors ${mode === m
-              ? "bg-indigo-600 text-white"
-              : "bg-transparent text-white/25 hover:text-white/50"}`}
+              ? "bg-slate-200 text-slate-900"
+              : "bg-transparent text-white/45 hover:text-white/80"}`}
           >
             {m === "tsx" ? "TSX / Tailwind" : "HTML"}
           </button>
         ))}
       </div>
 
-      {/* Editor container */}
-      <div className="rounded-xl overflow-hidden border border-white/[0.06] flex flex-col" style={{ background: "#1e1e1e" }}>
-        {/* Titlebar */}
-        <div className="px-3 py-1.5 border-b border-white/[0.05] flex items-center gap-2 flex-shrink-0" style={{ background: "#252526" }}>
-          <span className="w-2 h-2 rounded-full bg-rose-500/50" />
-          <span className="w-2 h-2 rounded-full bg-amber-500/50" />
-          <span className="w-2 h-2 rounded-full bg-emerald-500/50" />
-          <span className="ml-1 text-white/20 text-[10px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+      <div className="rounded-2xl overflow-hidden border border-white/[0.1] flex flex-col bg-[#16191e] shadow-[0_10px_34px_rgba(0,0,0,0.35)]">
+        <div className="flex shrink-0 items-center gap-2 border-b border-white/[0.08] bg-[#1e232a] px-3 py-1.5">
+          <span className="w-2 h-2 rounded-full bg-slate-500/70" />
+          <span className="w-2 h-2 rounded-full bg-slate-400/70" />
+          <span className="w-2 h-2 rounded-full bg-slate-300/70" />
+          <span className="ml-1 font-mono text-[10px] text-white/20">
             {mode === "html" ? "solution.html" : "solution.tsx"}
           </span>
           {!monacoReady && !loadError && (
@@ -213,26 +201,18 @@ export function Editor({ code, mode, onCodeChange, onModeChange }: EditorProps) 
           )}
         </div>
 
-        {/* Monaco mount point */}
-        <div ref={containerRef} style={{ height: 400, width: "100%" }} />
+        <div ref={containerRef} className="h-[400px] w-full" />
       </div>
 
-      {/* Placeholder shown only before Monaco loads */}
       {!monacoReady && !loadError && (
-        <div className="text-[10px] text-white/15 px-1">
-          {mode === "html"
-            ? <pre className="text-white/20" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>{PH_HTML}</pre>
-            : <pre className="text-white/20" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}>{PH_TSX}</pre>
-          }
+        <div className="px-1 text-[10px] text-white/15">
+          {mode === "html" ? (
+            <pre className="font-mono text-[11px] text-white/20">{PH_HTML}</pre>
+          ) : (
+            <pre className="font-mono text-[11px] text-white/20">{PH_TSX}</pre>
+          )}
         </div>
       )}
-
-      {/* Hints */}
-      <p className="text-[10px] text-white/15 px-1">
-        VS Code editor · Ctrl+Z undo · Ctrl+F поиск · автодополнение
-        {mode === "tsx" && <> · Tailwind CDN активен в превью</>}
-        {" · "}SVG: <code className="text-amber-300/40">{"<img src=\"Name.svg\" />"}</code>
-      </p>
     </div>
   );
 }
